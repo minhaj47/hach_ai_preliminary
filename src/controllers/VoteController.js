@@ -4,6 +4,78 @@ const CandidateModel = require('../models/CandidateModel');
 const config = require('../config/config');
 const { validateVote } = require('../utils/validation');
 
+/**
+ * Normalize various timestamp formats to ISO 8601
+ * @param {string} timestamp - Input timestamp in various formats
+ * @returns {string} Normalized ISO 8601 timestamp
+ */
+function normalizeTimestamp(timestamp) {
+  // Handle Unix timestamp (seconds or milliseconds)
+  if (/^\d{10}$/.test(timestamp)) {
+    // 10 digits = Unix timestamp in seconds
+    return new Date(parseInt(timestamp) * 1000).toISOString();
+  }
+  if (/^\d{13}$/.test(timestamp)) {
+    // 13 digits = Unix timestamp in milliseconds
+    return new Date(parseInt(timestamp)).toISOString();
+  }
+  
+  // Handle US format: MM/DD/YYYY or MM/DD/YYYY HH:mm:ss
+  const usDateMatch = timestamp.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2}):(\d{1,2}))?$/);
+  if (usDateMatch) {
+    const [, month, day, year, hour = '00', minute = '00', second = '00'] = usDateMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}.000Z`;
+  }
+  
+  // Handle EU format: DD/MM/YYYY or DD/MM/YYYY HH:mm:ss
+  const euDateMatch = timestamp.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2}):(\d{1,2}))?$/);
+  if (euDateMatch) {
+    const [, day, month, year, hour = '00', minute = '00', second = '00'] = euDateMatch;
+    // Only treat as EU format if day > 12 (otherwise ambiguous with US format)
+    if (parseInt(day) > 12) {
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}.000Z`;
+    }
+  }
+  
+  // Handle space-separated format: YYYY-MM-DD HH:mm:ss
+  const spaceMatch = timestamp.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+  if (spaceMatch) {
+    const [, year, month, day, hour, minute, second] = spaceMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}.000Z`;
+  }
+  
+  // Handle date-only format: YYYY-MM-DD
+  const dateOnlyMatch = timestamp.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00.000Z`;
+  }
+  
+  // Handle ISO 8601 formats - only if they look like valid ISO formats
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(timestamp) || 
+      /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/.test(timestamp)) {
+    let normalized = timestamp;
+    
+    // Convert space to T if needed
+    normalized = normalized.replace(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/, '$1T$2');
+    
+    // Add timezone if missing
+    if (!normalized.includes('Z') && !normalized.includes('+') && !normalized.includes('-', 10)) {
+      // Add milliseconds if missing
+      if (!normalized.includes('.')) {
+        normalized += '.000';
+      }
+      normalized += 'Z';
+    }
+    
+    return normalized;
+  }
+  
+  // If no pattern matches, return the original timestamp
+  // This will likely cause a validation error downstream
+  return timestamp;
+}
+
 class VoteController {
   /**
    * Cast a vote (Q8)
@@ -141,15 +213,10 @@ class VoteController {
     }
   }
 
-  /**
-   * Get votes in range for candidate (Q15)
-   * GET /api/votes/range?candidate_id={id}&from={t1}&to={t2}
-   * Status: 235 Range
-   */
   async getVotesInRange(req, res) {
     try {
       const { candidate_id, from, to } = req.query;
-
+      
       if (!candidate_id || !from || !to) {
         return res.status(400).json({ message: 'candidate_id, from, and to are required' });
       }
@@ -161,7 +228,27 @@ class VoteController {
       }
 
       try {
-        const votesGained = VoteModel.getVotesInRange(candidate_id, from, to);
+        // Comprehensive date format normalization
+        const normalizedFrom = normalizeTimestamp(from);
+        const normalizedTo = normalizeTimestamp(to);
+        
+        // Validate normalized dates
+        const fromDate = new Date(normalizedFrom);
+        const toDate = new Date(normalizedTo);
+        
+        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+          return res.status(400).json({ 
+            message: 'Invalid date format. Supported formats: ISO 8601 (2025-09-15T10:00:00Z), Date only (2025-09-15), US format (09/15/2025), EU format (15/09/2025), Unix timestamp, or space-separated (2025-09-15 10:00:00)' 
+          });
+        }
+        
+        if (fromDate > toDate) {
+          return res.status(400).json({ 
+            message: 'invalid interval: from > to'
+          });
+        }
+        
+        const votesGained = VoteModel.getVotesInRange(candidate_id, normalizedFrom, normalizedTo);
 
         res.status(config.statusCodes.RANGE).json({
           candidate_id: parseInt(candidate_id),
