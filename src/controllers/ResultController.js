@@ -23,7 +23,40 @@ async getResults(req, res) {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
+/**
+   * Get election winner (Q12)
+   * GET /api/results/winner
+   * Status: 232 Winner
+   */
+async getWinner(req, res) {
+  try {
+    const candidates = CandidateModel.getLeaderboard();
 
+    if (candidates.length === 0) {
+      return res.status(404).json({ message: 'No candidates found' });
+    }
+
+    // Get actual vote counts for all candidates
+    const candidatesWithVotes = candidates.map(candidate => ({
+      candidate_id: candidate.candidate_id,
+      name: candidate.name,
+      votes: VoteModel.getVoteCountForCandidate(candidate.candidate_id)
+    }));
+
+    // Sort by vote count (descending)
+    candidatesWithVotes.sort((a, b) => b.votes - a.votes);
+
+    // Find all winners (handle ties)
+    const maxVotes = candidatesWithVotes[0].votes;
+    const winners = candidatesWithVotes.filter(candidate => candidate.votes === maxVotes);
+
+    res.status(config.statusCodes.WINNER).json({
+      winners: winners
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
   /**
    * Homomorphic tally with verifiable decryption (Q17)
    * POST /api/results/homomorphic

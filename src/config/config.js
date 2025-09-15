@@ -1,5 +1,5 @@
 module.exports = {
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 8000,
   env: process.env.NODE_ENV || 'development',
   
   // Custom status codes for voting system
@@ -15,6 +15,7 @@ module.exports = {
     VOTES_RETRIEVED: 229, // Candidate votes retrieved
     FILTERED: 230,        // Candidates filtered by party
     RESULTS: 231,         // Voting results
+    WINNER: 232,          // Election winner(s)
     WEIGHTED: 234,        // Weighted vote
     RANGE: 235,           // Range vote query
     ENCRYPTED: 236,       // Encrypted ballot

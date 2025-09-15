@@ -59,7 +59,7 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-const PORT = config.port || 3000;
+const PORT = 8001;
 
 app.listen(PORT, () => {
   console.log(`🗳️  Voting System API running on port ${PORT}`);

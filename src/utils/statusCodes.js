@@ -12,10 +12,11 @@ function setupCustomStatusCodes() {
   http.STATUS_CODES[225] = 'Deleted';
   http.STATUS_CODES[226] = 'Registered';
   http.STATUS_CODES[227] = 'Listed';
-  http.STATUS_CODES[228] = 'Vote Cast';
-  http.STATUS_CODES[229] = 'Votes Retrieved';
+  http.STATUS_CODES[228] = 'Voted';
+  http.STATUS_CODES[229] = 'Counted';
   http.STATUS_CODES[230] = 'Filtered';
   http.STATUS_CODES[231] = 'Results';
+  http.STATUS_CODES[232] = 'Winner';
   http.STATUS_CODES[233] = 'Timeline';
   http.STATUS_CODES[234] = 'Weighted';
   http.STATUS_CODES[235] = 'Range';
