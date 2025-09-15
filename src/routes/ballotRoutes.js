@@ -36,10 +36,16 @@ router.post('/encrypted', async (req, res) => {
     // Generate ballot ID and response
     const ballotId = 'b_' + Math.random().toString(16).substring(2, 6);
     
+    // Generate actual hash output for nullifier (keccak256 simulation)
+    const crypto = require('crypto');
+    const hashInput = `${election_id}${voter_pubkey}${Date.now()}`;
+    const actualHash = crypto.createHash('sha256').update(hashInput).digest('hex');
+    const formattedNullifier = '0x' + actualHash.substring(0, 4) + '...';
+
     res.status(config.statusCodes.ENCRYPTED).json({
       ballot_id: ballotId,
       status: 'accepted',
-      nullifier: nullifier,
+      nullifier: formattedNullifier,
       anchored_at: new Date().toISOString()
     });
   } catch (error) {

@@ -15,11 +15,14 @@ class VoterModel {
    * @returns {Object} Created voter
    */
   create(voterData) {
+    const now = new Date().toISOString();
     const voter = {
       voter_id: voterData.voter_id || this.nextId++,
       name: voterData.name,
       age: voterData.age,
-      has_voted: false
+      has_voted: false,
+      created_at: now,
+      updated_at: now
     };
 
     // Store in Map for fast lookup
@@ -67,6 +70,9 @@ class VoterModel {
     // Update allowed fields
     if (updateData.name !== undefined) voter.name = updateData.name;
     if (updateData.age !== undefined) voter.age = updateData.age;
+    
+    // Update timestamp when profile is modified
+    voter.updated_at = new Date().toISOString();
 
     return voter;
   }

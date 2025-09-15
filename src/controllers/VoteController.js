@@ -95,9 +95,7 @@ class VoteController {
       const vote = VoteModel.create({ voter_id, candidate_id, weight });
       
       // Update candidate vote count (considering weight)
-      for (let i = 0; i < weight; i++) {
-        CandidateModel.incrementVotes(candidate_id);
-      }
+      CandidateModel.incrementVotesByWeight(candidate_id, weight);
       
       // Mark voter as voted
       VoterModel.markAsVoted(voter_id);

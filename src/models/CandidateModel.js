@@ -76,6 +76,20 @@ class CandidateModel {
   }
 
   /**
+   * Increment vote count for candidate by weight
+   * @param {number} candidateId - Candidate ID
+   * @param {number} weight - Vote weight
+   * @returns {boolean} Success status
+   */
+  incrementVotesByWeight(candidateId, weight) {
+    const candidate = this.candidatesMap.get(parseInt(candidateId));
+    if (!candidate) return false;
+
+    candidate.votes += weight;
+    return true;
+  }
+
+  /**
    * Get candidate vote count
    * @param {number} candidateId - Candidate ID
    * @returns {number|null} Vote count or null
