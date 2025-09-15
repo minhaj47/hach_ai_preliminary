@@ -1,7 +1,6 @@
-const { v4: uuidv4 } = require('uuid');
-
 /**
  * Voter Model with Map-based storage for fast lookup
+ * Follows HackAI HTML specifications exactly
  */
 class VoterModel {
   constructor() {
@@ -12,19 +11,14 @@ class VoterModel {
 
   /**
    * Create a new voter
-   * @param {Object} voterData - Voter information
+   * @param {Object} voterData - Voter information {voter_id, name, age}
    * @returns {Object} Created voter
    */
   create(voterData) {
     const voter = {
-      voter_id: this.nextId++,
-      full_name: voterData.full_name,
-      email: voterData.email,
+      voter_id: voterData.voter_id || this.nextId++,
+      name: voterData.name,
       age: voterData.age,
-      address: voterData.address,
-      phone: voterData.phone,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
       has_voted: false
     };
 
@@ -44,17 +38,12 @@ class VoterModel {
   }
 
   /**
-   * Find voter by email - O(n) search
-   * @param {string} email - Voter email
-   * @returns {Object|null} Voter or null
+   * Check if voter exists by ID
+   * @param {number} voterId - Voter ID
+   * @returns {boolean} True if voter exists
    */
-  findByEmail(email) {
-    for (const voter of this.votersMap.values()) {
-      if (voter.email === email) {
-        return voter;
-      }
-    }
-    return null;
+  exists(voterId) {
+    return this.votersMap.has(parseInt(voterId));
   }
 
   /**
@@ -68,25 +57,17 @@ class VoterModel {
   /**
    * Update voter by ID
    * @param {number} voterId - Voter ID
-   * @param {Object} updateData - Data to update
+   * @param {Object} updateData - Data to update {name, age}
    * @returns {Object|null} Updated voter or null
    */
   update(voterId, updateData) {
     const voter = this.votersMap.get(parseInt(voterId));
     if (!voter) return null;
 
-    // Update fields
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] !== undefined) {
-        voter[key] = updateData[key];
-      }
-    });
+    // Update allowed fields
+    if (updateData.name !== undefined) voter.name = updateData.name;
+    if (updateData.age !== undefined) voter.age = updateData.age;
 
-    voter.updated_at = new Date().toISOString();
-    
-    // Update in Map
-    this.votersMap.set(parseInt(voterId), voter);
-    
     return voter;
   }
 
@@ -109,8 +90,6 @@ class VoterModel {
     if (!voter) return false;
 
     voter.has_voted = true;
-    voter.updated_at = new Date().toISOString();
-    
     return true;
   }
 
@@ -120,6 +99,14 @@ class VoterModel {
    */
   getCount() {
     return this.votersMap.size;
+  }
+
+  /**
+   * Clear all voters (for testing)
+   */
+  clear() {
+    this.votersMap.clear();
+    this.nextId = 1;
   }
 }
 

@@ -18,20 +18,17 @@ class CandidateModel {
    */
   create(candidateData) {
     const candidate = {
-      candidate_id: this.nextId++,
-      full_name: candidateData.full_name,
-      party_name: candidateData.party_name,
-      age: candidateData.age,
-      bio: candidateData.bio,
-      created_at: new Date().toISOString(),
-      vote_count: 0
+      candidate_id: candidateData.candidate_id || this.nextId++,
+      name: candidateData.name,
+      party: candidateData.party,
+      votes: 0
     };
 
     // Store in Map for fast lookup
     this.candidatesMap.set(candidate.candidate_id, candidate);
     
     // Update party index
-    this.updatePartyIndex(candidate.candidate_id, candidate.party_name);
+    this.updatePartyIndex(candidate.candidate_id, candidate.party);
     
     return candidate;
   }
@@ -74,7 +71,7 @@ class CandidateModel {
     const candidate = this.candidatesMap.get(parseInt(candidateId));
     if (!candidate) return false;
 
-    candidate.vote_count++;
+    candidate.votes++;
     return true;
   }
 
@@ -85,7 +82,7 @@ class CandidateModel {
    */
   getVoteCount(candidateId) {
     const candidate = this.candidatesMap.get(parseInt(candidateId));
-    return candidate ? candidate.vote_count : null;
+    return candidate ? candidate.votes : null;
   }
 
   /**
@@ -100,11 +97,11 @@ class CandidateModel {
    * Update party index
    * @private
    */
-  updatePartyIndex(candidateId, partyName) {
-    if (!this.partyIndex.has(partyName)) {
-      this.partyIndex.set(partyName, new Set());
+  updatePartyIndex(candidateId, party) {
+    if (!this.partyIndex.has(party)) {
+      this.partyIndex.set(party, new Set());
     }
-    this.partyIndex.get(partyName).add(candidateId);
+    this.partyIndex.get(party).add(candidateId);
   }
 
   /**
@@ -120,7 +117,7 @@ class CandidateModel {
    * @returns {Array} Sorted candidates array
    */
   getLeaderboard() {
-    return this.getAll().sort((a, b) => b.vote_count - a.vote_count);
+    return this.getAll().sort((a, b) => b.votes - a.votes);
   }
 }
 

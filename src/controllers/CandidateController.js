@@ -19,7 +19,9 @@ class CandidateController {
       
       res.status(config.statusCodes.REGISTERED).json({
         candidate_id: candidate.candidate_id,
-        message: 'candidate registered successfully'
+        name: candidate.name,
+        party: candidate.party,
+        votes: candidate.votes
       });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });
@@ -48,7 +50,6 @@ class CandidateController {
         // Get all candidates
         candidates = CandidateModel.getAll();
         return res.status(config.statusCodes.CANDIDATES_LISTED).json({
-          total: candidates.length,
           candidates: candidates
         });
       }
@@ -75,8 +76,7 @@ class CandidateController {
       
       res.status(config.statusCodes.VOTES_RETRIEVED).json({
         candidate_id: parseInt(candidateId),
-        candidate_name: candidate.full_name,
-        total_votes: voteCount
+        votes: voteCount
       });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });

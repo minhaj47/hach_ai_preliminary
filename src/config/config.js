@@ -11,7 +11,7 @@ module.exports = {
     DELETED: 225,         // Voter deleted
     REGISTERED: 226,      // Candidate registered
     CANDIDATES_LISTED: 227, // Candidates listed
-    VOTE_CAST: 228,       // Vote cast
+    VOTED: 228,           // Vote cast
     VOTES_RETRIEVED: 229, // Candidate votes retrieved
     FILTERED: 230,        // Candidates filtered by party
     RESULTS: 231,         // Voting results

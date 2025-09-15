@@ -8,7 +8,7 @@ class VoteController {
   /**
    * Cast a vote (Q8)
    * POST /api/votes
-   * Status: 228 Vote Cast
+   * Status: 228 Voted
    */
   async castVote(req, res) {
     try {
@@ -33,7 +33,7 @@ class VoteController {
 
       // Check if voter has already voted
       if (VoteModel.hasVoterVoted(voter_id)) {
-        return res.status(409).json({ message: 'voter has already cast a vote' });
+        return res.status(423).json({ message: `voter with id: ${voter_id} has already voted` });
       }
 
       // Cast the vote
@@ -45,9 +45,11 @@ class VoteController {
       // Mark voter as voted
       VoterModel.markAsVoted(voter_id);
 
-      res.status(config.statusCodes.VOTE_CAST).json({
+      res.status(config.statusCodes.VOTED).json({
         vote_id: vote.vote_id,
-        message: 'vote cast successfully'
+        voter_id: vote.voter_id,
+        candidate_id: vote.candidate_id,
+        timestamp: vote.timestamp
       });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });

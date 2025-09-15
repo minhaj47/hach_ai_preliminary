@@ -1,22 +1,19 @@
 const Joi = require('joi');
 
 /**
- * Validation schemas using Joi
+ * Validation schemas using Joi - Following HackAI HTML specifications exactly
  */
 const validationSchemas = {
   voter: Joi.object({
-    full_name: Joi.string().min(2).max(100).required(),
-    email: Joi.string().email().required(),
-    age: Joi.number().integer().min(18).max(120).required(),
-    address: Joi.string().min(5).max(200).required(),
-    phone: Joi.string().pattern(/^[\+]?[1-9][\d]{0,15}$/).required()
+    voter_id: Joi.number().integer().positive().optional(), // Optional for create, required for update
+    name: Joi.string().min(1).max(100).required(),
+    age: Joi.number().integer().min(18).max(120).required()
   }),
 
   candidate: Joi.object({
-    full_name: Joi.string().min(2).max(100).required(),
-    party_name: Joi.string().min(2).max(50).required(),
-    age: Joi.number().integer().min(25).max(120).required(),
-    bio: Joi.string().max(500).optional()
+    candidate_id: Joi.number().integer().positive().optional(),
+    name: Joi.string().min(2).max(100).required(),
+    party: Joi.string().min(2).max(50).required()
   }),
 
   vote: Joi.object({
