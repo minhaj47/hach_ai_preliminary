@@ -18,7 +18,7 @@ class VoteController {
       }
 
       const { voter_id, candidate_id } = req.body;
-
+      
       // Check if voter exists
       const voter = VoterModel.findById(voter_id);
       if (!voter) {

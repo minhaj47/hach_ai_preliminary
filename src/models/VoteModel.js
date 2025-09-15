@@ -5,7 +5,7 @@ class VoteModel {
   constructor() {
     // Use Map for O(1) lookup performance
     this.votesMap = new Map();
-    this.nextId = 1;
+    this.nextId = 100;
     
     // Secondary indices for fast queries
     this.voterIndex = new Map();     // voter_id -> vote_id

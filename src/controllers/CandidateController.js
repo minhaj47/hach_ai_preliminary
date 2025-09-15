@@ -15,6 +15,12 @@ class CandidateController {
         return res.status(422).json({ message: error.details[0].message });
       }
 
+      if (req.body.candidate_id && CandidateModel.findById(req.body.candidate_id)) {
+          return res.status(409).json({ 
+            message: `candidate with id: ${req.body.candidate_id} already exists` 
+        });
+      }
+
       const candidate = CandidateModel.create(req.body);
       
       res.status(config.statusCodes.REGISTERED).json({
@@ -24,6 +30,7 @@ class CandidateController {
         votes: candidate.votes
       });
     } catch (error) {
+      console.log(error)
       res.status(500).json({ message: 'Internal server error' });
     }
   }

@@ -8,30 +8,21 @@ class ResultController {
    * GET /api/results
    * Status: 231 Results
    */
-  async getResults(req, res) {
+async getResults(req, res) {
     try {
-      const candidates = CandidateModel.getLeaderboard();
-      const totalVotes = VoteModel.getTotalCount();
+        const candidates = CandidateModel.getLeaderboard();
 
-      const results = candidates.map((candidate, index) => ({
-        rank: index + 1,
-        candidate_id: candidate.candidate_id,
-        candidate_name: candidate.full_name,
-        party_name: candidate.party_name,
-        votes: candidate.vote_count,
-        percentage: totalVotes > 0 ? ((candidate.vote_count / totalVotes) * 100).toFixed(2) : "0.00"
-      }));
+        const results = candidates.map(candidate => ({
+            candidate_id: candidate.candidate_id,
+            name: candidate.name,
+            votes: candidate.votes
+        }));
 
-      res.status(config.statusCodes.RESULTS).json({
-        total_votes: totalVotes,
-        total_candidates: candidates.length,
-        winner: results.length > 0 ? results[0] : null,
-        leaderboard: results
-      });
+        res.status(config.statusCodes.RESULTS).json({ results });
     } catch (error) {
-      res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ message: 'Internal server error' });
     }
-  }
+}
 
   /**
    * Homomorphic tally with verifiable decryption (Q17)
@@ -50,7 +41,7 @@ class ResultController {
       const candidates = CandidateModel.getAll();
       const candidateTallies = candidates.map(candidate => ({
         candidate_id: candidate.candidate_id,
-        votes: candidate.vote_count
+        votes: candidate.votes
       }));
 
       // Generate mock cryptographic proofs
